@@ -1,5 +1,7 @@
 window.addEventListener("DOMContentLoaded", () => {
 
+    // Табы
+
     const tabs = document.querySelectorAll(".tabheader__item"),
         tabsContent = document.querySelectorAll(".tabcontent"),
         tabsParent = document.querySelector(".tabheader__items");
@@ -43,35 +45,16 @@ window.addEventListener("DOMContentLoaded", () => {
     });
 
 
-    //test for work with New Date()
-    /*const now = new Date();
-    // console.log(now.getMonth());
-    // console.log(now.getDate());
-    // console.log(now.getHours());
-    // console.log(now.getUTCHours());
-    // console.log(now.getSeconds());
-    console.log(now.getTime());
-
-    let start = new Date();
-
-    for( let i = 0; i < 100000; i++ )  {
-        let some = i ** 20;
-    }
-
-    let end = new Date();
-
-    alert(`Цикл отработал за ${ end - start } милисекунд`);*/
-
     // Timer
 
     const deadline = '2020-09-11';
 
     function getTimeRemaining(endtime) {
         const t = Date.parse(endtime) - Date.parse(new Date()),
-            days = Math.floor( t / (1000 * 60 * 60 * 24) ),
-            hours = Math.floor( (t / (1000 * 60 * 60) % 24) ),
-            minutes = Math.floor( (t / 1000 / 60) % 60 ),
-            seconds = Math.floor( (t / 1000) % 60 );
+            days = Math.floor(t / (1000 * 60 * 60 * 24)),
+            hours = Math.floor((t / (1000 * 60 * 60) % 24)),
+            minutes = Math.floor((t / 1000 / 60) % 60),
+            seconds = Math.floor((t / 1000) % 60);
 
         return {
             'total': t,
@@ -82,7 +65,7 @@ window.addEventListener("DOMContentLoaded", () => {
         };
     }
 
-    function getZero (num) {
+    function getZero(num) {
         if (num >= 0 && num < 10) {
             return `0${num}`;
         } else {
@@ -98,15 +81,15 @@ window.addEventListener("DOMContentLoaded", () => {
             seconds = timer.querySelector('#seconds'),
             timeInterval = setInterval(updateClock, 1000);
 
-            updateClock();
+        updateClock();
 
         function updateClock() {
             const t = getTimeRemaining(endtime);
 
             days.innerHTML = getZero(t.days);
-            hours.innerHTML =  getZero(t.hours);
-            minutes.innerHTML =  getZero(t.minutes);
-            seconds.innerHTML =  getZero(t.seconds);
+            hours.innerHTML = getZero(t.hours);
+            minutes.innerHTML = getZero(t.minutes);
+            seconds.innerHTML = getZero(t.seconds);
 
             if (t.total <= 0) {
                 clearInterval(timeInterval);
@@ -115,4 +98,61 @@ window.addEventListener("DOMContentLoaded", () => {
         }
     }
     setClock('.timer', deadline);
+
+
+    /* Модальные окна */
+
+    const modalTriger = document.querySelectorAll('[data-modal]'),
+        modal = document.querySelector('.modal'),
+        modalCloseBnt = document.querySelector('[data-close]');
+
+    function openModal() {
+        modal.classList.add('show');
+        modal.classList.remove('hide');
+        document.body.style.overflow = 'hidden';
+        clearInterval(modalTimerId);
+    }
+
+    modalTriger.forEach(btn => {
+        btn.addEventListener('click', openModal);
+    });
+
+
+
+    function closeModal() {
+        modal.classList.add('hide');
+        modal.classList.remove('show');
+        // Затемняет задний фон если модальное окно открыто и делает не активным
+        document.body.style.overflow = '';
+    }
+
+    modalCloseBnt.addEventListener('click', closeModal);
+
+    // Закрываем окно если курсор мыши нажат за пределами окна
+    modal.addEventListener('click', (e) => {
+        if (e.target === modal) {
+            closeModal();
+        }
+    });
+    // Закрываем окно клавишей Esc
+    document.addEventListener('keydown', (e) => {
+        if (e.code === "Escape" && modal.classList.contains('show')) {
+            closeModal();
+        }
+
+    });
+    // Ставим таймер через какое время вызввть модальное окно на сайте
+
+    const modalTimerId = setInterval(openModal, 6000);
+
+    // Устанавливаем событие если пользователь долистал до конца открыть модальное окно
+    function showModalByScroll() {
+        if (window.pageYOffset + document.documentElement.clientHeight >= document.documentElement.scrollHeight) {
+            openModal();
+            window.removeEventListener('scroll', showModalByScroll);
+        }   
+    }
+
+    window.addEventListener('scroll', showModalByScroll);
+
 });
