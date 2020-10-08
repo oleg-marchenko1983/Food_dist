@@ -103,8 +103,8 @@ window.addEventListener("DOMContentLoaded", () => {
     /* Модальные окна */
 
     const modalTriger = document.querySelectorAll('[data-modal]'),
-        modal = document.querySelector('.modal'),
-        modalCloseBnt = document.querySelector('[data-close]');
+        modal = document.querySelector('.modal');
+
 
     function openModal() {
         modal.classList.add('show');
@@ -126,11 +126,11 @@ window.addEventListener("DOMContentLoaded", () => {
         document.body.style.overflow = '';
     }
 
-    modalCloseBnt.addEventListener('click', closeModal);
+
 
     // Закрываем окно если курсор мыши нажат за пределами окна
     modal.addEventListener('click', (e) => {
-        if (e.target === modal) {
+        if (e.target === modal || e.target.getAttribute('data-close') == "") {
             closeModal();
         }
     });
@@ -143,7 +143,7 @@ window.addEventListener("DOMContentLoaded", () => {
     });
     // Ставим таймер через какое время вызввть модальное окно на сайте
 
-    // const modalTimerId = setInterval(openModal, 6000);
+    const modalTimerId = setInterval(openModal, 60000);
 
     // Устанавливаем событие если пользователь долистал до конца открыть модальное окно
     function showModalByScroll() {
@@ -206,7 +206,7 @@ window.addEventListener("DOMContentLoaded", () => {
         'Меню "Фитнес" - это новый подход к приготовлению блюд: больше свежих овощей и фруктов. Продукт активных и здоровых людей. Это абсолютно новый продукт с оптимальной ценой и высоким качеством!',
         9,
         '.menu .container',
-       
+
     ).render();
 
     new MenuCard(
@@ -230,5 +230,92 @@ window.addEventListener("DOMContentLoaded", () => {
         'big'
     ).render();
 
+    //Forms
+    const forms = document.querySelectorAll('form');
+
+    const messages = {
+        loading: "img/form/spinner.svg",
+        success: "Спасибо Мы с Вами свяжимся",
+        failure: "Что-то пошло не так"
+    };
+
+    forms.forEach(item => {
+        postData(item);
+    });
+
+    function postData(form) {
+        form.addEventListener('submit', (e) => {
+            e.preventDefault();
+
+            const statusMessages = document.createElement('img');
+            statusMessages.src = messages.loading;
+            statusMessages.style.cssText = `
+            display: block;
+            margin: 0 auto;
+            `;
+
+
+
+            form.insertAdjacentElement('afterend', statusMessages);
+
+
+            const request = new XMLHttpRequest();
+            request.open('POST', 'server.php');
+            request.setRequestHeader('Content-type', 'application/json');
+            const formData = new FormData(form);
+
+            const object = {};
+
+            formData.forEach(function (value, key) {
+                object[key] = value;
+            });
+
+            const json = JSON.stringify(object);
+
+            request.send(json);
+
+            request.addEventListener('load', () => {
+                if (request.status === 200) {
+                    console.log(request.response);
+                    showThanksModal(messages.success);
+                    form.reset();
+                    statusMessages.remove();
+
+                } else {
+                    statusMessages.textContent = messages.failure;
+                    showThanksModal(messages.failure);
+                }
+            });
+
+        });
+    }
+
+    function showThanksModal(message) {
+        const previosModalDialog = document.querySelector('.modal__dialog');
+
+        previosModalDialog.classList.add('hide');
+
+        openModal();
+
+        const thanksModal = document.createElement('div');
+
+        thanksModal.classList.add('modal__dialog');
+
+        thanksModal.innerHTML = `
+         <div class="modal__content">
+            <div class="modal__close" data-close>x</div>
+            <div class="modal__title">${message}</div>
+         </div>
+        `;
+
+        document.querySelector('.modal').append(thanksModal);
+        setTimeout(() => {
+            thanksModal.remove();
+            previosModalDialog.classList.add('show');
+            previosModalDialog.classList.remove('hide');
+            closeModal();
+        }, 4000);
+
+    }
 
 });
