@@ -199,36 +199,34 @@ window.addEventListener("DOMContentLoaded", () => {
 
     }
 
-    new MenuCard(
-        "img/tabs/vegy.jpg",
-        "vegy",
-        'Меню "Фитнес"',
-        'Меню "Фитнес" - это новый подход к приготовлению блюд: больше свежих овощей и фруктов. Продукт активных и здоровых людей. Это абсолютно новый продукт с оптимальной ценой и высоким качеством!',
-        9,
-        '.menu .container',
+    const getResource = async (url) => {
+        const res = await fetch(url);
 
-    ).render();
+        if (!res.ok) {
+            throw new Error(`Could not fetch ${url} , status ${res.status}`)
+        }
 
-    new MenuCard(
-        "img/tabs/elite.jpg",
-        "elite",
-        'Меню “Премиум”',
-        'В меню “Премиум” мы используем не только красивый дизайн упаковки, но и качественное исполнение блюд. Красная рыба, морепродукты, фрукты - ресторанное меню без похода в ресторан!',
-        14,
-        '.menu .container',
-        'menu__item',
-    ).render();
+        return await res.json();
 
-    new MenuCard(
-        "img/tabs/post.jpg",
-        "post",
-        'Меню "Постное"',
-        'Меню “Постное” - это тщательный подбор ингредиентов: полное отсутствие продуктов животного происхождения, молоко из миндаля, овса, кокоса или гречки, правильное количество белков за счет тофу и импортных вегетарианских стейков.!',
-        20,
-        '.menu .container',
-        'menu__item',
-        'big'
-    ).render();
+    };
+
+
+    getResource('  http://localhost:3000/menu')
+        .then(data => {
+            data.forEach(({
+                img,
+                altimg,
+                title,
+                descr,
+                price
+            }) => {
+                new MenuCard(img, altimg, title, descr, price, '.menu .container').render();
+            });
+        });
+
+
+
+
 
     //Forms
     const forms = document.querySelectorAll('form');
@@ -240,10 +238,12 @@ window.addEventListener("DOMContentLoaded", () => {
     };
 
     forms.forEach(item => {
-        postData(item);
+        bindPostData(item);
     });
 
-    function postData(form) {
+
+
+    function bindPostData(form) {
         form.addEventListener('submit', (e) => {
             e.preventDefault();
 
@@ -259,33 +259,22 @@ window.addEventListener("DOMContentLoaded", () => {
             form.insertAdjacentElement('afterend', statusMessages);
 
 
-            const request = new XMLHttpRequest();
-            request.open('POST', 'server.php');
-            request.setRequestHeader('Content-type', 'application/json');
             const formData = new FormData(form);
 
-            const object = {};
+            const json = JSON.stringify(Object.fromEntries(formData.entries()));
 
-            formData.forEach(function (value, key) {
-                object[key] = value;
-            });
 
-            const json = JSON.stringify(object);
-
-            request.send(json);
-
-            request.addEventListener('load', () => {
-                if (request.status === 200) {
-                    console.log(request.response);
+            getResource('http://localhost:3000/requests', json)
+                .then(data => {
+                    console.log(data);
                     showThanksModal(messages.success);
                     form.reset();
                     statusMessages.remove();
-
-                } else {
-                    statusMessages.textContent = messages.failure;
+                }).catch(() => {
                     showThanksModal(messages.failure);
-                }
-            });
+                }).finally(() => {
+                    form.reset();
+                });
 
         });
     }
@@ -317,5 +306,9 @@ window.addEventListener("DOMContentLoaded", () => {
         }, 4000);
 
     }
+
+    fetch('http://localhost:3000/menu')
+        .then(data => data.json())
+        .then(res => console.log(res));
 
 });
