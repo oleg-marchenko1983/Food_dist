@@ -8,3 +8,4 @@
 2. JSON-server
 3. Webpack
 4. PHP local server (XAMP)
+5. Babel
